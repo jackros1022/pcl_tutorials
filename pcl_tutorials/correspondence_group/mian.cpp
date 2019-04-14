@@ -19,6 +19,11 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/filters/passthrough.h>
 
+#include "../filter/filterPassThrough.h"
+#include "../segment/segmentSAC.h"
+#include "../feature/featureNormalEstimation.h"
+#include "../keypoint/KeypointUniformSampling.h"
+
 typedef pcl::PointXYZ PointType;
 typedef pcl::Normal NormalType;
 typedef pcl::ReferenceFrame RFType;
@@ -32,8 +37,8 @@ bool show_keypoints_(true);
 bool show_correspondences_(true);
 bool use_cloud_resolution_(false);
 bool use_hough_(true);
-float model_ss_(0.01f);
-float scene_ss_(0.03f);
+float model_ss_(0.01f);		//UniformSampling RadiusSearch
+float scene_ss_(0.03f);		//UniformSampling RadiusSearch
 float rf_rad_(0.015f);
 float descr_rad_(0.02f);
 float cg_size_(0.01f);
@@ -221,30 +226,18 @@ main(int argc, char *argv[])
 
 	//
 	//	Todo: 使用分割，剔除平面
-	//
+	//	sence去除平面点云，降低处理数量
 	if (true)
 	{
 
-		pcl::PassThrough<pcl::PointXYZ>::Ptr pt(new pcl::PassThrough<pcl::PointXYZ>);
-		pt->setFilterFieldName("z");
-		pt->setFilterLimits(0.6, 0.9);
-		pt->setInputCloud(scene_in);
-		pt->setNegative(false);
-		pt->filter(*scene_pt);
+		getPassthroughFilter(scene_in, scene_pt);
 
 		// Create the segmentation object
-		pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-		pcl::SACSegmentation<pcl::PointXYZ> seg;
-		seg.setOptimizeCoefficients(true);
-		seg.setModelType(pcl::SACMODEL_PLANE);
-		seg.setMethodType(pcl::SAC_RANSAC);
-		seg.setDistanceThreshold(0.01);
-		seg.setInputCloud(scene_in);
-		seg.segment(*inliers, *coefficients);
+		getSAC_Segmentation(scene_pt, inliers);
 
 		pcl::ExtractIndices<pcl::PointXYZ> extract;
-		extract.setInputCloud(scene_in);
+		extract.setInputCloud(scene_pt);
 		extract.setIndices(inliers);
 		extract.setNegative(true);
 		extract.filter(*scene);
@@ -253,30 +246,16 @@ main(int argc, char *argv[])
 	//
 	//  Compute Normals
 	//
-	pcl::NormalEstimationOMP<PointType, NormalType> norm_est;
-	norm_est.setKSearch(10);
-	norm_est.setNumberOfThreads(10);
+	getNormalEstimation(model, model_normals);
+	getNormalEstimation(scene, scene_normals);
 
-	norm_est.setInputCloud(model);
-	norm_est.compute(*model_normals);	
-
-	norm_est.setInputCloud(scene);
-	norm_est.compute(*scene_normals);
 
 	//
 	//  Downsample Clouds to Extract keypoints
 	//
-	pcl::PointCloud<int> sampled_indices;
-
-	pcl::UniformSampling<PointType> uniform_sampling;
-	uniform_sampling.setInputCloud(model);
-	uniform_sampling.setRadiusSearch(model_ss_);
-	uniform_sampling.filter(*model_keypoints);
+	getUniformSampling(model, model_keypoints, 0.01);
+	getUniformSampling(scene, scene_keypoints, 0.03);
 	std::cout << "Model total points: " << model->size() << "; Selected Keypoints: " << model_keypoints->size() << std::endl;
-
-	uniform_sampling.setInputCloud(scene);
-	uniform_sampling.setRadiusSearch(scene_ss_);
-	uniform_sampling.filter(*scene_keypoints);
 	std::cout << "Scene total points: " << scene->size() << "; Selected Keypoints: " << scene_keypoints->size() << std::endl;
 
 
@@ -291,11 +270,13 @@ main(int argc, char *argv[])
 	descr_est.setInputNormals(model_normals);		// 法线提前计算好
 	descr_est.setSearchSurface(model);				// 搜索的表面
 	descr_est.compute(*model_descriptors);			// 直接计算全局描述符,太耗时
+	cout <<"model_descriptors->size: "<< model_descriptors->size() << endl;
 
 	descr_est.setInputCloud(scene_keypoints);
 	descr_est.setInputNormals(scene_normals);
 	descr_est.setSearchSurface(scene);
 	descr_est.compute(*scene_descriptors);
+	cout << "scene_descriptors->size: " << scene_descriptors->size() << endl;
 
 	//
 	//  Find Model-Scene Correspondences with KdTree

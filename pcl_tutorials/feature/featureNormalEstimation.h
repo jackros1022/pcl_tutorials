@@ -69,7 +69,7 @@ void getNormalOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl
 	pcl::console::TicToc time;
 
 	// ÇóÈ¡indices
-	if (true)
+	if (false)
 	{
 		pcl::UniformSampling<pcl::PointXYZ>::Ptr un(new pcl::UniformSampling<pcl::PointXYZ>);
 		un->setRadiusSearch(0.01);

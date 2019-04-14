@@ -3,7 +3,7 @@
 #include "pcl/point_types.h"
 #include "pcl/keypoints/uniform_sampling.h"
 
-void getUniformSampling(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint)
+void getUniformSampling(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint, double radius=0.05)
 {
 	
 	/*
@@ -21,11 +21,7 @@ void getUniformSampling(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointClo
 	pcl::IndicesPtr indices;
 
 	us->setInputCloud(cloud);
-	us->setRadiusSearch(0.05);
+	us->setRadiusSearch(radius);
 	us->filter(*keypoint);
-	//indices = us->getRemovedIndices();
 
-
-	//Todo , 如何获取索引 
-	//copyPointCloud(*cloud, *indices, *keypoint);
 }

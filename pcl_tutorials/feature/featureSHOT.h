@@ -1,10 +1,15 @@
 #pragma once
+
+/*
+	描述能力很好
+*/
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 #include "pcl\features\shot.h"
 #include "pcl\features\shot_omp.h"
 #include "pcl\features\shot_lrf.h"
 #include "pcl\features\shot_lrf_omp.h"
+
 
 void getSHOT()
 {
