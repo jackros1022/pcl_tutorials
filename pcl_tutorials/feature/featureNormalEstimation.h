@@ -66,18 +66,28 @@ void getNormal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::N
 void getNormalOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal) {
 
 	pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal>::Ptr ne(new pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal>);
+	pcl::console::TicToc time;
+
 	// 求取indices
-	pcl::UniformSampling<pcl::PointXYZ>::Ptr un(new pcl::UniformSampling<pcl::PointXYZ>);
-	un->setRadiusSearch(0.02);
-	un->setInputCloud(cloud);
-	pcl::console::TicToc time; time.tic();
-	un->filter(*cloud);
-	std::cout << " UniformSampling Function Time: " << time.toc() / 1000 << "s" << std::endl;
+	if (true)
+	{
+		pcl::UniformSampling<pcl::PointXYZ>::Ptr un(new pcl::UniformSampling<pcl::PointXYZ>);
+		un->setRadiusSearch(0.01);
+		un->setInputCloud(cloud);
+		time.tic();
+		un->filter(*cloud);
+		std::cout << " UniformSampling Function Time: " << time.toc() / 1000 << "s" << std::endl;
+		std::cout << " --> UniformSampling cloud->size: " << cloud->size() << std::endl;
+
+	}
+
 
 
 	// 计算法线
 	ne->setNumberOfThreads(10);
-	ne->setKSearch(5);
+	ne->setRadiusSearch(0.02);
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+	ne->setSearchMethod(tree);
 	ne->setInputCloud(cloud);
 	time.tic();
 	ne->compute(*normal);
