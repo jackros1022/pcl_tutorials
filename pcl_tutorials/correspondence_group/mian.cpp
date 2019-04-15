@@ -23,6 +23,7 @@
 #include "../segment/segmentSAC.h"
 #include "../feature/featureNormalEstimation.h"
 #include "../keypoint/KeypointUniformSampling.h"
+#include "../filter/filterExtractIndices.h"
 
 typedef pcl::PointXYZ PointType;
 typedef pcl::Normal NormalType;
@@ -229,18 +230,12 @@ main(int argc, char *argv[])
 	//	sence去除平面点云，降低处理数量
 	if (true)
 	{
-
 		getPassthroughFilter(scene_in, scene_pt);
 
-		// Create the segmentation object
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 		getSAC_Segmentation(scene_pt, inliers);
 
-		pcl::ExtractIndices<pcl::PointXYZ> extract;
-		extract.setInputCloud(scene_pt);
-		extract.setIndices(inliers);
-		extract.setNegative(true);
-		extract.filter(*scene);
+		scene = getExtract_Indices(scene_pt, inliers);
 	}
 
 	//
