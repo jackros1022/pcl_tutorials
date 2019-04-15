@@ -173,6 +173,7 @@ main(int argc, char *argv[])
 {
 	parseCommandLine(argc, argv);
 
+	pcl::console::TicToc time;
 	pcl::PointCloud<PointType>::Ptr model(new pcl::PointCloud<PointType>());
 	pcl::PointCloud<PointType>::Ptr model_keypoints(new pcl::PointCloud<PointType>());
 	pcl::PointCloud<PointType>::Ptr scene(new pcl::PointCloud<PointType>());
@@ -230,12 +231,14 @@ main(int argc, char *argv[])
 	//	sence去除平面点云，降低处理数量
 	if (true)
 	{
+		time.tic();
 		getPassthroughFilter(scene_in, scene_pt);
 
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 		getSAC_Segmentation(scene_pt, inliers);
 
 		scene = getExtract_Indices(scene_pt, inliers);
+		std::cout << " 使用分割，剔除平面 Time: " << time.toc() / 1000 << "s" << std::endl;
 	}
 
 	//
