@@ -6,7 +6,7 @@
 #include "../keypoint/KeypointSIFT.h"
 #include "featureNormalEstimation.h"
 
-pcl::PointCloud<pcl::PFHSignature125>::Ptr getPFH(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+pcl::PointCloud<pcl::PFHSignature125>::Ptr getPFH(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 {
 	pcl::PointCloud<pcl::PFHSignature125>::Ptr pfhFeature(new pcl::PointCloud<pcl::PFHSignature125>);
 	pcl::PointCloud<pcl::Normal>::Ptr normal(new pcl::PointCloud<pcl::Normal>);
@@ -34,7 +34,7 @@ pcl::PointCloud<pcl::PFHSignature125>::Ptr getPFH(pcl::PointCloud<pcl::PointXYZ>
 
 }
 
-pcl::PointCloud<pcl::FPFHSignature33>::Ptr getFPFH(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+pcl::PointCloud<pcl::FPFHSignature33>::Ptr getFPFH(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 {
 	pcl::PointCloud<pcl::FPFHSignature33>::Ptr fpfhFeature(new pcl::PointCloud<pcl::FPFHSignature33>);
 	pcl::PointCloud<pcl::Normal>::Ptr normal(new pcl::PointCloud<pcl::Normal>);

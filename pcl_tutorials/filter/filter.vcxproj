@@ -22,6 +22,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="estimateRadius.h" />
     <ClInclude Include="filterExtractIndices.h" />
     <ClInclude Include="filterPassThrough.h" />
   </ItemGroup>

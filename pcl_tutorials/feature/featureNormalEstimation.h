@@ -51,19 +51,20 @@ void getNormal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::N
 	ne->setInputCloud(cloud);
 	ne->setKSearch(5);
 
-	if (false)	// 测试是否输入tree，计算视觉
+	if (true)	// 测试是否输入tree，计算视觉
 	{
 		pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+		tree->setInputCloud(cloud);
 		ne->setSearchMethod(tree);
+
 	}
-	pcl::console::TicToc time;
-	time.tic();
+	pcl::console::TicToc time;time.tic();
 	ne->compute(*normal);
 
 	std::cout << "getNormal Function Time: " << time.toc() / 1000 << "s" << std::endl;
 }
 
-void getNormalOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal) {
+void getNormalOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::PointCloud<pcl::Normal>::Ptr normal) {
 
 	pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal>::Ptr ne(new pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal>);
 	pcl::console::TicToc time;
@@ -87,6 +88,7 @@ void getNormalOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl
 	ne->setNumberOfThreads(10);
 	ne->setRadiusSearch(0.02);
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+	tree->setInputCloud(cloud);
 	ne->setSearchMethod(tree);
 	ne->setInputCloud(cloud);
 	time.tic();
@@ -95,7 +97,7 @@ void getNormalOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl
 
 }
 
-void getNormalEstimation(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal) 
+void getNormalEstimation(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, pcl::PointCloud<pcl::Normal>::Ptr normal) 
 {
 	/************************************************************************/
 	/* 
@@ -152,9 +154,11 @@ void 	useSensorOriginAsViewPoint ()
 	if (cloud->isOrganized())
 	{
 		ne->setInputCloud(cloud);
+		pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+		tree->setInputCloud(cloud);
+		ne->setSearchMethod(tree);
 
-		pcl::console::TicToc time;
-		time.tic();
+		pcl::console::TicToc time;time.tic();
 		ne->compute(*normal);
 		std::cout << " IntegralImageNormalEstimation Function Time: " << time.toc() / 1000 << "s" << std::endl;
 

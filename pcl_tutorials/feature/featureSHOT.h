@@ -34,7 +34,7 @@ typedef pcl::ReferenceFrame FeatureT;
 typedef pcl::SHOTLocalReferenceFrameEstimation<PointT, FeatureT> FeatureEstimationT;
 typedef pcl::PointCloud<FeatureT> FeatureCloudT;
 
-https://github.com/suneverust/TestLRF/blob/master/lrf.cpp
+// https://github.com/suneverust/TestLRF/blob/master/lrf.cpp
 /************************************************************************/
 
 
@@ -57,6 +57,8 @@ pcl::PointCloud<pcl::SHOT352>::Ptr getSHOT(pcl::PointCloud<pcl::PointXYZ>::Ptr k
 	shot->setInputNormals(normal);		// 法线提前计算好
 	shot->setSearchSurface(surface);				// 搜索的表面
 	shot->compute(*shotDescriptor);			// 直接计算全局描述符,太耗时
+
+	return shotDescriptor;
 }
 
 pcl::PointCloud<pcl::SHOT352>::Ptr getSHOTOMP(pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint,
@@ -64,7 +66,25 @@ pcl::PointCloud<pcl::SHOT352>::Ptr getSHOTOMP(pcl::PointCloud<pcl::PointXYZ>::Pt
 												pcl::PointCloud<pcl::PointXYZ>::Ptr surface = NULL,
 												double radius = 0.01) 
 {
+	/*
+	template <typename PointInT, typename PointNT, typename PointOutT = pcl::SHOT352, typename PointRFT = pcl::ReferenceFrame>
+	class SHOTEstimationOMP : public SHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>
+	
+	*/
+	pcl::SHOTEstimationOMP<pcl::PointXYZ, pcl::Normal>::Ptr shot(new pcl::SHOTEstimationOMP<pcl::PointXYZ, pcl::Normal>);
+	pcl::PointCloud<pcl::SHOT352>::Ptr shotDescriptor(new pcl::PointCloud<pcl::SHOT352>);
+	shot->setNumberOfThreads(10);
+	shot->setRadiusSearch(radius);
 
+	shot->setInputCloud(keypoint);
+	shot->setInputNormals(normal);
+	shot->setSearchSurface(surface);
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+	shot->setSearchMethod(tree);
+
+	shot->compute(*shotDescriptor);
+
+	return shotDescriptor;
 
 }
 
@@ -72,6 +92,8 @@ pcl::PointCloud<pcl::SHOT352>::Ptr getSHOTOMP(pcl::PointCloud<pcl::PointXYZ>::Pt
 
 int getSHOT_lrf()
 {
+	/*
+
 	// Initiate Point clouds
 	PointCloudT::Ptr object(new PointCloudT);
 	PointCloudT::Ptr object_downsample(new PointCloudT);
@@ -137,6 +159,9 @@ int getSHOT_lrf()
 		(*object_features)[100].z_axis[1],
 		(*object_features)[100].z_axis[2]
 	);
+	*/
 
-	return (0);
+	return 0;
+
+
 }

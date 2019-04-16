@@ -145,8 +145,10 @@
   <ItemGroup>
     <ClInclude Include="featureFPH.h" />
     <ClInclude Include="featureNormalEstimation.h" />
+    <ClInclude Include="featureRoPS.h" />
     <ClInclude Include="featureSC.h" />
     <ClInclude Include="featureSHOT.h" />
+    <ClInclude Include="featureSI.h" />
     <ClInclude Include="featureVFH.h" />
   </ItemGroup>
   <ItemGroup>

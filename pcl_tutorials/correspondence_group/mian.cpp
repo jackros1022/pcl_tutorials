@@ -24,6 +24,7 @@
 #include "../feature/featureNormalEstimation.h"
 #include "../keypoint/KeypointUniformSampling.h"
 #include "../filter/filterExtractIndices.h"
+#include "../feature/featureSHOT.h"
 
 typedef pcl::PointXYZ PointType;
 typedef pcl::Normal NormalType;
@@ -39,7 +40,7 @@ bool show_correspondences_(true);
 bool use_cloud_resolution_(false);
 bool use_hough_(true);
 float model_ss_(0.01f);		//UniformSampling RadiusSearch
-float scene_ss_(0.03f);		//UniformSampling RadiusSearch
+float scene_ss_(0.01f);		//UniformSampling RadiusSearch
 float rf_rad_(0.015f);
 float descr_rad_(0.02f);
 float cg_size_(0.01f);
@@ -77,6 +78,7 @@ parseCommandLine(int argc, char *argv[])
 	if (pcl::console::find_switch(argc, argv, "-h"))
 	{
 		showHelp(argv[0]);
+		getchar();
 		exit(0);
 	}
 
@@ -87,6 +89,8 @@ parseCommandLine(int argc, char *argv[])
 	{
 		std::cout << "Filenames missing.\n";
 		showHelp(argv[0]);
+		getchar();
+
 		exit(-1);
 	}
 
@@ -182,8 +186,7 @@ main(int argc, char *argv[])
 	pcl::PointCloud<PointType>::Ptr scene_keypoints(new pcl::PointCloud<PointType>());
 	pcl::PointCloud<NormalType>::Ptr model_normals(new pcl::PointCloud<NormalType>());
 	pcl::PointCloud<NormalType>::Ptr scene_normals(new pcl::PointCloud<NormalType>());
-	pcl::PointCloud<DescriptorType>::Ptr model_descriptors(new pcl::PointCloud<DescriptorType>());
-	pcl::PointCloud<DescriptorType>::Ptr scene_descriptors(new pcl::PointCloud<DescriptorType>());
+
 
 	//
 	//  Load clouds
@@ -229,6 +232,7 @@ main(int argc, char *argv[])
 	//
 	//	Todo: 使用分割，剔除平面
 	//	sence去除平面点云，降低处理数量
+	//
 	if (true)
 	{
 		time.tic();
@@ -237,43 +241,38 @@ main(int argc, char *argv[])
 		pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
 		getSAC_Segmentation(scene_pt, inliers);
 
+
+		// 分割后的scene
 		scene = getExtract_Indices(scene_pt, inliers);
 		std::cout << " 使用分割，剔除平面 Time: " << time.toc() / 1000 << "s" << std::endl;
 	}
-
 	//
 	//  Compute Normals
 	//
 	getNormalEstimation(model, model_normals);
 	getNormalEstimation(scene, scene_normals);
 
-
 	//
 	//  Downsample Clouds to Extract keypoints
 	//
-	getUniformSampling(model, model_keypoints, 0.01);
-	getUniformSampling(scene, scene_keypoints, 0.03);
+	getUniformSampling(model, model_keypoints, model_ss_);
+	getUniformSampling(scene, scene_keypoints, scene_ss_);
 	std::cout << "Model total points: " << model->size() << "; Selected Keypoints: " << model_keypoints->size() << std::endl;
 	std::cout << "Scene total points: " << scene->size() << "; Selected Keypoints: " << scene_keypoints->size() << std::endl;
+
+
+
 
 
 	//
 	//  Compute Descriptor for keypoints
 	//
-	pcl::SHOTEstimationOMP<PointType, NormalType, DescriptorType> descr_est;
-	descr_est.setRadiusSearch(descr_rad_);
-	descr_est.setNumberOfThreads(10);
+	pcl::PointCloud<DescriptorType>::Ptr model_descriptors(new pcl::PointCloud<DescriptorType>());
+	pcl::PointCloud<DescriptorType>::Ptr scene_descriptors(new pcl::PointCloud<DescriptorType>());
 
-	descr_est.setInputCloud(model_keypoints);		// 使用关键点计算特征描述符
-	descr_est.setInputNormals(model_normals);		// 法线提前计算好
-	descr_est.setSearchSurface(model);				// 搜索的表面
-	descr_est.compute(*model_descriptors);			// 直接计算全局描述符,太耗时
-	cout <<"model_descriptors->size: "<< model_descriptors->size() << endl;
-
-	descr_est.setInputCloud(scene_keypoints);
-	descr_est.setInputNormals(scene_normals);
-	descr_est.setSearchSurface(scene);
-	descr_est.compute(*scene_descriptors);
+	model_descriptors = getSHOTOMP(model_keypoints, model_normals, model, descr_rad_);
+	cout << "model_descriptors->size: " << model_descriptors->size() << endl;
+	scene_descriptors = getSHOTOMP(scene_keypoints, scene_normals, scene, descr_rad_);
 	cout << "scene_descriptors->size: " << scene_descriptors->size() << endl;
 
 	//

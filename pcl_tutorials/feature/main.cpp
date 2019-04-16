@@ -13,8 +13,8 @@ using namespace std;
 #include "featureNormalEstimation.h"
 #include "featureFPH.h"
 
-#define PFHSignature
-#define FPFHSignature
+//#define PFHSignature
+//#define FPFHSignature
 
 int main()
 {
@@ -23,10 +23,11 @@ int main()
 	pcl::PointCloud<pcl::Normal>::Ptr normal(new pcl::PointCloud<pcl::Normal>);
 	
 	pcl::console::TicToc time;time.tic();
-	if (pcl::io::loadPCDFile("../data/milk.pcd", *in_cloud) == -1){
+	if (pcl::io::loadPCDFile("../data/pig.pcd", *in_cloud) == -1){
 		std::cout << "load pcd file failed!\n";getchar();return -1;}
 	std::cout << "loadPCDFile Function Time: " << time.toc() / 1000 << "s" << std::endl;
 
+	getNormal(in_cloud, normal);
 
 	//getNormalEstimation(in_cloud, normal);
 
