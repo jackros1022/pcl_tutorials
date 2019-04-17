@@ -21,7 +21,11 @@ void getUniformSampling(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointClo
 	pcl::IndicesPtr indices;
 
 	us->setInputCloud(cloud);
-	us->setRadiusSearch(radius);
+	us->setRadiusSearch(radius);	//0.01 ´ú±í 1cm
+	pcl::console::TicToc time; time.tic();
 	us->filter(*keypoint);
+	std::cout << " UniformSampling Function Time: " << time.toc() / 1000 << "s" << std::endl;
+	std::cout << "Before UniformSampling size:" << cloud->size() << std::endl;
+	std::cout << " --> After UniformSampling size:" << keypoint->size() << std::endl;
 
 }

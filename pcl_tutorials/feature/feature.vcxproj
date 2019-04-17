@@ -149,6 +149,7 @@
     <ClInclude Include="featureSC.h" />
     <ClInclude Include="featureSHOT.h" />
     <ClInclude Include="featureSI.h" />
+    <ClInclude Include="featureTriangulation.h" />
     <ClInclude Include="featureVFH.h" />
   </ItemGroup>
   <ItemGroup>

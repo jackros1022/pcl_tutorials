@@ -13,26 +13,26 @@
 #include "pcl\features\shot_lrf_omp.h"
 
 /************************************************************************/
-#include <Eigen/Core>
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-#include <pcl/common/time.h>
-#include <pcl/common/common.h>
-#include <pcl/console/print.h>
-#include <pcl/features/shot_lrf.h>
-#include <pcl/filters/filter.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/io/pcd_io.h>
-
-#include <time.h>
-#include <fstream>
-
-// Types
-typedef pcl::PointXYZ PointT;
-typedef pcl::PointCloud<PointT> PointCloudT;
-typedef pcl::ReferenceFrame FeatureT;
-typedef pcl::SHOTLocalReferenceFrameEstimation<PointT, FeatureT> FeatureEstimationT;
-typedef pcl::PointCloud<FeatureT> FeatureCloudT;
+//#include <Eigen/Core>
+//#include <pcl/point_types.h>
+//#include <pcl/point_cloud.h>
+//#include <pcl/common/time.h>
+//#include <pcl/common/common.h>
+//#include <pcl/console/print.h>
+//#include <pcl/features/shot_lrf.h>
+//#include <pcl/filters/filter.h>
+//#include <pcl/filters/voxel_grid.h>
+//#include <pcl/io/pcd_io.h>
+//
+//#include <time.h>
+//#include <fstream>
+//
+//// Types
+//typedef pcl::PointXYZ PointT;
+//typedef pcl::PointCloud<PointT> PointCloudT;
+//typedef pcl::ReferenceFrame FeatureT;
+//typedef pcl::SHOTLocalReferenceFrameEstimation<PointT, FeatureT> FeatureEstimationT;
+//typedef pcl::PointCloud<FeatureT> FeatureCloudT;
 
 // https://github.com/suneverust/TestLRF/blob/master/lrf.cpp
 /************************************************************************/
@@ -44,12 +44,14 @@ pcl::PointCloud<pcl::SHOT352>::Ptr getSHOT(pcl::PointCloud<pcl::PointXYZ>::Ptr k
 											double radius = 0.01)
 {
 	/*
-	template <typename PointInT, typename PointNT, typename PointOutT = pcl::SHOT352, typename PointRFT = pcl::ReferenceFrame>
+	template <typename PointInT, typename PointNT, 
+				typename PointOutT = pcl::SHOT352, typename PointRFT = pcl::ReferenceFrame>
 	class SHOTEstimation : public SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>
 
 	半径参数，很关键！
 	*/
-	pcl::SHOTEstimation<pcl::PointXYZ, pcl::Normal>::Ptr shot(new pcl::SHOTEstimation<pcl::PointXYZ, pcl::Normal>);
+	pcl::SHOTEstimation<pcl::PointXYZ, pcl::Normal>::Ptr shot(new 
+		pcl::SHOTEstimation<pcl::PointXYZ, pcl::Normal>);
 	pcl::PointCloud<pcl::SHOT352>::Ptr shotDescriptor(new pcl::PointCloud<pcl::SHOT352>);
 	shot->setRadiusSearch(radius);
 
@@ -81,8 +83,9 @@ pcl::PointCloud<pcl::SHOT352>::Ptr getSHOTOMP(pcl::PointCloud<pcl::PointXYZ>::Pt
 	shot->setSearchSurface(surface);
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
 	shot->setSearchMethod(tree);
-
+	pcl::console::TicToc time; time.tic();
 	shot->compute(*shotDescriptor);
+	std::cout << " SHOTEstimationOMP Function Time: " << time.toc() / 1000 << "s" << std::endl;
 
 	return shotDescriptor;
 
