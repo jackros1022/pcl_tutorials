@@ -17,10 +17,12 @@ using namespace std;
 
 #include "../keypoint/KeypointUniformSampling.h"
 #include "featureSHOT.h"
-
+#include "featureMomentInvariants.h"
+//#define visualizationSignature
 //#define PFHSignature
 //#define FPFHSignature
 //#define SHOTSignature
+//#define RoPSSignature
 
 int main()
 {
@@ -40,23 +42,24 @@ int main()
 
 	//getNormal(in_cloud, normal);
 	//getNormalEstimation(in_cloud, normal);
-	//computeROPS();
-	//getGP3(in_cloud);
+
+	getMomentInvariants(keypoint);
+
+#if RoPSSignature
 	getTriangulation(keypoint, normal, triangles);
-
-
 	pcl::PointCloud<pcl::Histogram <135> >::Ptr histograms(new pcl::PointCloud <pcl::Histogram <135> >());
 	histograms = getRoPS(triangles, keypoint, normal, keypoint);
-	
+#endif
+
 
 #ifdef PFHSignature
-	pcl::PointCloud<pcl::PFHSignature125>::Ptr pfhSignature125(new pcl::PointCloud<pcl::PFHSignature125>);
-	pfhSignature125 = getPFH(in_cloud);
+	pcl::PointCloud<pcl::PFHSignature125>::Ptr histograms(new pcl::PointCloud<pcl::PFHSignature125>);
+	histograms = getPFH(in_cloud);
 #endif 
 
 #ifdef FPFHSignature
-	pcl::PointCloud<pcl::FPFHSignature33>::Ptr fpfhSignature33(new pcl::PointCloud<pcl::FPFHSignature33>);
-	fpfhSignature33 = getFPFHOMP(in_cloud,keypoint,normal);
+	pcl::PointCloud<pcl::FPFHSignature33>::Ptr histograms(new pcl::PointCloud<pcl::FPFHSignature33>);
+	histograms = getFPFHOMP(in_cloud,keypoint,normal);
 #endif 
 
 #ifdef SHOTSignature
@@ -65,14 +68,12 @@ int main()
 	shot352 = getSHOTOMP(keypoint, normal, keypoint, 0.05);
 #endif
 
+#if visualizationSignature
 	// 可视化
-
 	pcl::visualization::PCLPlotter plotter;
 	plotter.addFeatureHistogram(*histograms, 300); //设置的很坐标长度，该值越大，则显示的越细致
 	plotter.plot();
-	
-
-	
+#endif
 
 
 	getchar();

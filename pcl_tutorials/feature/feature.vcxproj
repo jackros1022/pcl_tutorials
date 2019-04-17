@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="featureFPH.h" />
+    <ClInclude Include="featureMomentInvariants.h" />
     <ClInclude Include="featureNormalEstimation.h" />
     <ClInclude Include="featureRoPS.h" />
     <ClInclude Include="featureSC.h" />
