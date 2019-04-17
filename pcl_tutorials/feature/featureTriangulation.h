@@ -77,13 +77,13 @@ void getTriangulation(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
 	gp3.reconstruct(polygonMesh);
 
 	//保存网格图
-	//pcl::io::savePLYFile("result.ply", polygonMesh);
+	//pcl::io::savePLYFile("./rops/result.ply", polygonMesh);
 	
 	pcl::PointCloud<pcl::PointXYZ>::Ptr tcloud(new pcl::PointCloud<pcl::PointXYZ>);
 	fromPCLPointCloud2(polygonMesh.cloud, *tcloud);
 
 	// 把polygonMesh保存为txt文件
-	//ofstream f1("result.txt");
+	//ofstream f1("./rops/result.txt");
 	//for (int i = 0; i < tcloud->size(); i++)
 	//{
 	//	f1 << tcloud->points[i].x << " " << tcloud->points[i].y << " " << tcloud->points[i].z << endl;
