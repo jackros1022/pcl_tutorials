@@ -24,7 +24,7 @@ using namespace std;
 //#define SHOTSignature
 //#define RoPSSignature
 
-#define MomentInvariantsSignature
+//#define MomentInvariantsSignature
 
 int main()
 {

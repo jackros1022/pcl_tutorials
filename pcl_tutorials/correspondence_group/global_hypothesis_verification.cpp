@@ -16,6 +16,7 @@
 #include <pcl/kdtree/impl/kdtree_flann.hpp>
 #include <pcl/common/transforms.h>
 #include <pcl/console/parse.h>
+#include "pcl/console/time.h"
 
 /************************************************************************/
 // ransac 物体识别，俩头文件什么区别？
@@ -199,6 +200,7 @@ main(int argc,
 	pcl::PointCloud<NormalType>::Ptr scene_normals(new pcl::PointCloud<NormalType>());
 	pcl::PointCloud<DescriptorType>::Ptr model_descriptors(new pcl::PointCloud<DescriptorType>());
 	pcl::PointCloud<DescriptorType>::Ptr scene_descriptors(new pcl::PointCloud<DescriptorType>());
+	pcl::console::TicToc time;
 
 	/**
 	* Load Clouds
@@ -293,6 +295,7 @@ main(int argc,
 
 	/**
 	*  Clustering
+	* 假设生成模块包含两个任务：一是获得场景中可能存在的候选模型，二是获 得每个候选模型的可能姿态（即变换假设）。
 	* 变换假设计算：包括几何一致性、姿态聚类、约束解译树、RANSAC、博弈论以及扩展霍夫变换等
 	*/
 	std::vector<Eigen::Matrix4f, Eigen::aligned_allocator<Eigen::Matrix4f> > rototranslations;
@@ -344,7 +347,8 @@ main(int argc,
 		gc_clusterer.recognize(rototranslations, clustered_corrs);
 	}
 	else {
-		//pcl::recognition::ObjRecRANSAC();
+		// 怎么使用RANSAC去除错误点对
+		//pcl::recognition::ObjRecRANSAC(); 
 	}
 
 	/**
@@ -362,6 +366,8 @@ main(int argc,
 
 	/**
 	* Generates clouds for each instances found
+	* 假设验证：目的在于将正确的假设从错误的假设中区分出来。
+	* 现有方法包括：独立验证方法（ICP）和 全局验证方法
 	*/
 	std::vector<pcl::PointCloud<PointType>::ConstPtr> instances;
 
@@ -373,7 +379,7 @@ main(int argc,
 	}
 
 	/**
-	* ICP
+	* 独立验证方法（ICP）
 	*/
 	std::vector<pcl::PointCloud<PointType>::ConstPtr> registered_instances;
 	if (true)
@@ -400,18 +406,18 @@ main(int argc,
 				cout << "Not Aligned!" << endl;
 			}
 		}
-
 		cout << "-----------------" << endl << endl;
 	}
 
 	/**
-	* Hypothesis Verification
+	* 全局验证方法 (Hypothesis Verification)
+	* 该方法：在不增加虚警率的同时 显著提高对被遮挡物体的检测识别率，其主要缺陷在于优化算法的运算量较大。
 	*/
 	cout << "--- Hypotheses Verification ---" << endl;
 	std::vector<bool> hypotheses_mask;  // Mask Vector to identify positive hypotheses
 
 	pcl::GlobalHypothesesVerification<PointType, PointType> GoHv;
-
+	time.tic();
 	GoHv.setSceneCloud(scene);  // Scene Cloud
 	GoHv.addModels(registered_instances, true);  //Models to verify
 
@@ -425,6 +431,7 @@ main(int argc,
 
 	GoHv.verify();
 	GoHv.getMask(hypotheses_mask);  // i-element TRUE if hvModels[i] verifies hypotheses
+	std::cout << "GlobalHypothesesVerification(全局验证方法) Time: " << time.toc() / 1000 << "s" << std::endl;
 
 	for (int i = 0; i < hypotheses_mask.size(); i++)
 	{

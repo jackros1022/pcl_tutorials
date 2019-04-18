@@ -1,15 +1,18 @@
 #pragma once
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
+#include "pcl/console/time.h"
 #include "pcl/filters/passthrough.h"
 #include "pcl/filters/voxel_grid.h"
 #include "pcl/filters/statistical_outlier_removal.h"
 #include "pcl/filters/radius_outlier_removal.h"
 
+
 /***********************Ë«±ßÂË²¨******************************************/
 #include "pcl/filters/bilateral.h"
 #include "pcl/filters/fast_bilateral.h"
 #include "pcl/filters/fast_bilateral_omp.h"
+#include "pcl/surface/bilateral_upsampling.h"
 /************************************************************************/
 
 #include "pcl/console/time.h"
@@ -70,7 +73,6 @@ void getBilateralFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, pcl::PointCl
 	
 	*/
 	pcl::FastBilateralFilter<pcl::PointXYZ>::Ptr fbf(new pcl::FastBilateralFilter<pcl::PointXYZ>);
-
 	pcl::FastBilateralFilterOMP<pcl::PointXYZ>::Ptr fbfOmp(new pcl::FastBilateralFilterOMP<pcl::PointXYZ>);
 	fbfOmp->setNumberOfThreads(10);
 	fbfOmp->setSigmaR(0.1);
@@ -80,5 +82,27 @@ void getBilateralFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, pcl::PointCl
 	fbfOmp->filter(*filter);
 	std::cout << "getNormal Function Time: " << time.toc() / 1000 << "s" << std::endl;
 
+
+
+}
+
+// Ë«±ßÂË²¨ ÏÂ²ÉÑù
+void getBilateralUpsampling(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud, 
+	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_upsampled)
+{
+	/*
+	template <typename PointInT, typename PointOutT>
+	class BilateralUpsampling: public CloudSurfaceProcessing<PointInT, PointOutT>
+	*/
+	pcl::BilateralUpsampling<pcl::PointXYZRGBA, pcl::PointXYZRGBA> bu;
+	bu.setInputCloud(cloud);
+	//bu.setWindowSize(window_size);
+	//bu.setSigmaColor(sigma_color);
+	//bu.setSigmaDepth(sigma_depth);
+
+	// TODO need to fix this somehow
+	bu.setProjectionMatrix(bu.KinectSXGAProjectionMatrix);
+
+	bu.process(*cloud_upsampled);
 
 }

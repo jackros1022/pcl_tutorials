@@ -47,10 +47,10 @@ using namespace visualization;
 bool
 vtk_to_pointcloud (const char* file_name, PointCloud<PointXYZ>& pcl_points, PointCloud<Normal>& pcl_normals, vtkPolyData* vtk_dst = NULL);
 
-//#define _SHOW_SCENE_POINTS_
+#define _SHOW_SCENE_POINTS_
 #define _SHOW_OCTREE_POINTS_
-//#define _SHOW_SCENE_OPPS_
-//#define _SHOW_OCTREE_NORMALS_
+#define _SHOW_SCENE_OPPS_
+#define _SHOW_OCTREE_NORMALS_
 
 class CallbackParameters
 {
@@ -255,7 +255,8 @@ update (CallbackParameters* params)
   vtkSmartPointer<vtkHedgeHog> vtk_hh = vtkSmartPointer<vtkHedgeHog>::New ();
   vtk_hh->SetVectorModeToUseNormal ();
   vtk_hh->SetScaleFactor (0.5f*params->objrec_.getPairWidth ());
-  vtk_hh->SetInput (vtk_opps);
+  //vtk_hh->SetInput (vtk_opps);
+  vtk_hh->SetInputData(vtk_opps);
   vtk_hh->Update ();
 
   // The lines
