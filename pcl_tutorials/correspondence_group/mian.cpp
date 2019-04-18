@@ -298,6 +298,7 @@ main(int argc, char *argv[])
 		// 阈值设置，距离小于0.25匹配成功
 		if (found_neighs == 1 && neigh_sqr_dists[0] < 0.25f) //  add match only if the squared descriptor distance is less than 0.25 (SHOT descriptor distances are between 0 and 1 by design)
 		{
+			//_index_query(source),  _index_match,  _distance
 			pcl::Correspondence corr(neigh_indices[0], static_cast<int> (i), neigh_sqr_dists[0]);
 			model_scene_corrs->push_back(corr);
 		}
@@ -313,7 +314,7 @@ main(int argc, char *argv[])
 	//  Using Hough3D
 	if (use_hough_)
 	{
-		//
+		//	局部坐标系
 		//  Compute (Keypoints) Reference Frames only for Hough
 		//
 		pcl::PointCloud<RFType>::Ptr model_rf(new pcl::PointCloud<RFType>());
@@ -347,7 +348,7 @@ main(int argc, char *argv[])
 		clusterer.setModelSceneCorrespondences(model_scene_corrs);		//欧式距离小于0.25的匹配
 
 		//clusterer.cluster (clustered_corrs);
-		clusterer.recognize(rototranslations, clustered_corrs);
+		clusterer.recognize(rototranslations, clustered_corrs);		//旋转矩阵、对应点对
 	}
 	else // Using GeometricConsistency
 	{
@@ -360,7 +361,7 @@ main(int argc, char *argv[])
 		gc_clusterer.setModelSceneCorrespondences(model_scene_corrs);	//欧式距离小于0.25的匹配
 
 		//gc_clusterer.cluster (clustered_corrs);
-		gc_clusterer.recognize(rototranslations, clustered_corrs);
+		gc_clusterer.recognize(rototranslations, clustered_corrs);	//旋转矩阵、对应点对
 	}
 
 	//

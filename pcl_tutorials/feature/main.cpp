@@ -24,6 +24,8 @@ using namespace std;
 //#define SHOTSignature
 //#define RoPSSignature
 
+#define MomentInvariantsSignature
+
 int main()
 {
 
@@ -37,13 +39,15 @@ int main()
 		std::cout << "load pcd file failed!\n";getchar();return -1;}
 	std::cout << "loadPCDFile Function Time: " << time.toc() / 1000 << "s" << std::endl;
 
-	getUniformSampling(in_cloud, keypoint, 0.01);
+	getUniformSampling(in_cloud, keypoint, 0.005);
 	getNormalEstimation(keypoint, normal);
 
 	//getNormal(in_cloud, normal);
 	//getNormalEstimation(in_cloud, normal);
-
+#if MomentInvariantsSignature
 	getMomentInvariants(keypoint);
+
+#endif
 
 #if RoPSSignature
 	getTriangulation(keypoint, normal, triangles);
