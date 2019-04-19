@@ -146,7 +146,11 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cluster_recognition.h" />
     <ClInclude Include="registrationICP.h" />
+    <ClInclude Include="registrationNDT.h" />
+    <ClInclude Include="registrationSampleConsensus.h" />
+    <ClInclude Include="template_alignment.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

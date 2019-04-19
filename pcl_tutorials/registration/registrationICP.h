@@ -217,7 +217,8 @@ int getInteractive_icp()
 				printf("\033[11A");
 				printf("\nICP has converged, score is %+.0e\n", icp.getFitnessScore());
 				std::cout << "\nICP transformation " << ++iterations << " : cloud_icp -> cloud_in" << std::endl;
-				transformation_matrix *= icp.getFinalTransformation().cast<double>();  // 
+				// 获得的值，矩阵左乘
+				transformation_matrix *= icp.getFinalTransformation().cast<double>();  
 				print4x4Matrix(transformation_matrix);  // 输出初始矩阵和当前矩阵的转换矩阵
 
 				ss.str("");

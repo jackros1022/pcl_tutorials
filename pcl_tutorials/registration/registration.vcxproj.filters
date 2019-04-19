@@ -23,5 +23,17 @@
     <ClInclude Include="registrationICP.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="registrationNDT.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="registrationSampleConsensus.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="template_alignment.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_recognition.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

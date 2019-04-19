@@ -23,7 +23,7 @@
 #include "pcl/recognition/obj_rec_ransac.h"
 #include "pcl/recognition/ransac_based/obj_rec_ransac.h"
 /************************************************************************/
-typedef pcl::PointXYZRGBA PointType;
+typedef pcl::PointXYZ PointType;
 typedef pcl::Normal NormalType;
 typedef pcl::ReferenceFrame RFType;
 typedef pcl::SHOT352 DescriptorType;
@@ -57,11 +57,14 @@ std::string model_filename_;
 std::string scene_filename_;
 
 //Algorithm params
-bool show_keypoints_(false);
+bool show_keypoints_(true);
 
 bool use_hough_(true);
 bool use_GC_(false);
 bool use_RANSAC_(false);
+
+bool use_ICP_(true);
+bool use_HV_(true);
 
 float model_ss_(0.02f);
 float scene_ss_(0.02f);
@@ -69,8 +72,8 @@ float rf_rad_(0.015f);
 float descr_rad_(0.02f);
 float cg_size_(0.01f);
 float cg_thresh_(5.0f);
-int icp_max_iter_(5);
-float icp_corr_distance_(0.005f);
+int   icp_max_iter_(50);
+float icp_corr_distance_(0.005f);	//icp阈值
 float hv_clutter_reg_(5.0f);
 float hv_inlier_th_(0.005f);
 float hv_occlusion_th_(0.01f);
@@ -222,6 +225,7 @@ main(int argc,
 	* Compute Normals
 	*/
 	pcl::NormalEstimationOMP<PointType, NormalType> norm_est;
+	norm_est.setNumberOfThreads(10);
 	norm_est.setKSearch(10);
 	norm_est.setInputCloud(model);
 	norm_est.compute(*model_normals);
@@ -247,6 +251,7 @@ main(int argc,
 	*  Compute Descriptor for keypoints
 	*/
 	pcl::SHOTEstimationOMP<PointType, NormalType, DescriptorType> descr_est;
+	descr_est.setNumberOfThreads(10);
 	descr_est.setRadiusSearch(descr_rad_);
 
 	descr_est.setInputCloud(model_keypoints);
@@ -307,6 +312,7 @@ main(int argc,
 		pcl::PointCloud<RFType>::Ptr scene_rf(new pcl::PointCloud<RFType>());
 
 		pcl::BOARDLocalReferenceFrameEstimation<PointType, NormalType, RFType> rf_est;
+		time.toc();
 		rf_est.setFindHoles(true);
 		rf_est.setRadiusSearch(rf_rad_);
 
@@ -334,9 +340,12 @@ main(int argc,
 		clusterer.setModelSceneCorrespondences(model_scene_corrs);
 
 		clusterer.recognize(rototranslations, clustered_corrs);
+		std::cout << "\n Hough3DGrouping Time: " << time.toc() / 1000 << "s" << std::endl;
+
 	}else if(use_GC_)
 	{
 		pcl::GeometricConsistencyGrouping<PointType, PointType> gc_clusterer;
+		time.toc();
 		gc_clusterer.setGCSize(cg_size_);
 		gc_clusterer.setGCThreshold(cg_thresh_);
 
@@ -345,6 +354,8 @@ main(int argc,
 		gc_clusterer.setModelSceneCorrespondences(model_scene_corrs);
 
 		gc_clusterer.recognize(rototranslations, clustered_corrs);
+		std::cout << "GeometricConsistencyGrouping Time: " << time.toc() / 1000 << "s" << std::endl;
+
 	}
 	else {
 		// 怎么使用RANSAC去除错误点对
@@ -381,22 +392,26 @@ main(int argc,
 	/**
 	* 独立验证方法（ICP）
 	*/
+
 	std::vector<pcl::PointCloud<PointType>::ConstPtr> registered_instances;
-	if (true)
+	if (use_ICP_)
 	{
 		cout << "--- ICP ---------" << endl;
 
 		for (size_t i = 0; i < rototranslations.size(); ++i)
 		{
 			pcl::IterativeClosestPoint<PointType, PointType> icp;
+			time.toc();
 			icp.setMaximumIterations(icp_max_iter_);
 			icp.setMaxCorrespondenceDistance(icp_corr_distance_);
 			icp.setInputTarget(scene);
-			icp.setInputSource(instances[i]);
+			icp.setInputSource(instances[i]);	//识别后，旋转的 rotated_model
 			pcl::PointCloud<PointType>::Ptr registered(new pcl::PointCloud<PointType>);
 			icp.align(*registered);
 			registered_instances.push_back(registered);
-			cout << "Instance " << i << " ";
+			cout << "Instance Indices " << i << " ";
+			std::cout << "\n IterativeClosestPoint(独立验证方法) Time: " << time.toc() / 1000 << "s" << std::endl;
+
 			if (icp.hasConverged())
 			{
 				cout << "Aligned!" << endl;
@@ -413,38 +428,42 @@ main(int argc,
 	* 全局验证方法 (Hypothesis Verification)
 	* 该方法：在不增加虚警率的同时 显著提高对被遮挡物体的检测识别率，其主要缺陷在于优化算法的运算量较大。
 	*/
-	cout << "--- Hypotheses Verification ---" << endl;
 	std::vector<bool> hypotheses_mask;  // Mask Vector to identify positive hypotheses
-
-	pcl::GlobalHypothesesVerification<PointType, PointType> GoHv;
-	time.tic();
-	GoHv.setSceneCloud(scene);  // Scene Cloud
-	GoHv.addModels(registered_instances, true);  //Models to verify
-
-	GoHv.setInlierThreshold(hv_inlier_th_);
-	GoHv.setOcclusionThreshold(hv_occlusion_th_);
-	GoHv.setRegularizer(hv_regularizer_);
-	GoHv.setRadiusClutter(hv_rad_clutter_);
-	GoHv.setClutterRegularizer(hv_clutter_reg_);
-	GoHv.setDetectClutter(hv_detect_clutter_);
-	GoHv.setRadiusNormals(hv_rad_normals_);
-
-	GoHv.verify();
-	GoHv.getMask(hypotheses_mask);  // i-element TRUE if hvModels[i] verifies hypotheses
-	std::cout << "GlobalHypothesesVerification(全局验证方法) Time: " << time.toc() / 1000 << "s" << std::endl;
-
-	for (int i = 0; i < hypotheses_mask.size(); i++)
+	if (use_HV_ && !registered_instances.empty())
 	{
-		if (hypotheses_mask[i])
+		cout << "--- Hypotheses Verification ---" << endl;
+	
+		pcl::GlobalHypothesesVerification<PointType, PointType> GoHv;
+		time.tic();
+		GoHv.setSceneCloud(scene);  // Scene Cloud
+		GoHv.addModels(registered_instances, true);  //Models to verify
+
+		GoHv.setInlierThreshold(hv_inlier_th_);
+		GoHv.setOcclusionThreshold(hv_occlusion_th_);
+		GoHv.setRegularizer(hv_regularizer_);
+		GoHv.setRadiusClutter(hv_rad_clutter_);
+		GoHv.setClutterRegularizer(hv_clutter_reg_);
+		GoHv.setDetectClutter(hv_detect_clutter_);
+		GoHv.setRadiusNormals(hv_rad_normals_);
+
+		GoHv.verify();
+		GoHv.getMask(hypotheses_mask);  // i-element TRUE if hvModels[i] verifies hypotheses
+		std::cout << "GlobalHypothesesVerification(全局验证方法) Time: " << time.toc() / 1000 << "s" << std::endl;
+
+		for (int i = 0; i < hypotheses_mask.size(); i++)
 		{
-			cout << "Instance " << i << " is GOOD! <---" << endl;
+			if (hypotheses_mask[i])
+			{
+				cout << "Instance Indice " << i << " is GOOD! <---" << endl;
+			}
+			else
+			{
+				cout << "Instance Indice" << i << " is bad!" << endl;
+			}
 		}
-		else
-		{
-			cout << "Instance " << i << " is bad!" << endl;
-		}
+		cout << "-------------------------------" << endl;
 	}
-	cout << "-------------------------------" << endl;
+
 
 	/**
 	*  Visualization
@@ -494,8 +513,8 @@ main(int argc,
 
 		CloudStyle registeredStyles = hypotheses_mask[i] ? style_green : style_cyan;
 		ss_instance << "_registered" << endl;
-		pcl::visualization::PointCloudColorHandlerCustom<PointType> registered_instance_color_handler(registered_instances[i], registeredStyles.r,
-			registeredStyles.g, registeredStyles.b);
+		pcl::visualization::PointCloudColorHandlerCustom<PointType> registered_instance_color_handler(
+			registered_instances[i], registeredStyles.r,registeredStyles.g, registeredStyles.b);
 		viewer.addPointCloud(registered_instances[i], registered_instance_color_handler, ss_instance.str());
 		viewer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, registeredStyles.size, ss_instance.str());
 	}
