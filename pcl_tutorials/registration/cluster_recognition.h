@@ -22,6 +22,7 @@
 #include <flann/io/hdf5.h>
 #include <boost/filesystem.hpp>
 
+using namespace std;
 
 /************************************************************************/
 /*                 build tree                                           */
@@ -39,13 +40,14 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	// Load the file as a PCD
 	try
 	{
-		sensor_msgs::PointCloud2 cloud;
+		pcl::PCLPointCloud2 cloud;
+		//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 		int version;
 		Eigen::Vector4f origin;
 		Eigen::Quaternionf orientation;
 		pcl::PCDReader r;
 		int type; unsigned int idx;
-		r.readHeader(path.string(), cloud, origin, orientation, version, type, idx);
+		r.readHeader(path.string(),cloud, origin, orientation, version, type, idx);
 
 		vfh_idx = pcl::getFieldIndex(cloud, "vfh");
 		if (vfh_idx == -1)
@@ -62,8 +64,8 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	pcl::PointCloud <pcl::VFHSignature308> point;
 	pcl::io::loadPCDFile(path.string(), point);
 	vfh.second.resize(308);
-
-	std::vector <sensor_msgs::PointField> fields;
+	
+	std::vector <pcl::PCLPointField> fields;
 	pcl::getFieldIndex(point, "vfh", fields);
 
 	for (size_t i = 0; i < fields[vfh_idx].count; ++i)
@@ -81,8 +83,9 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 * \param models the resultant vector of histogram models
 */
 void
-loadFeatureModels(const boost::filesystem::path &base_dir, const std::string &extension,
-	std::vector<vfh_model> &models)
+loadFeatureModels(	const boost::filesystem::path	&base_dir, 
+								const std::string	&extension,
+							std::vector<vfh_model>	&models)
 {
 	if (!boost::filesystem::exists(base_dir) && !boost::filesystem::is_directory(base_dir))
 		return;
@@ -94,7 +97,7 @@ loadFeatureModels(const boost::filesystem::path &base_dir, const std::string &ex
 			std::stringstream ss;
 			ss << it->path();
 			pcl::console::print_highlight("Loading %s (%lu models loaded so far).\n", ss.str().c_str(), (unsigned long)models.size());
-			loadFeatureModels(it->path(), extension, models);
+			loadFeatureModels(it->path(), extension, models);	//µ›πÈ
 		}
 		if (boost::filesystem::is_regular_file(it->status()) && boost::filesystem::extension(it->path()) == extension)
 		{
@@ -106,14 +109,8 @@ loadFeatureModels(const boost::filesystem::path &base_dir, const std::string &ex
 }
 
 int
-build_tree(int argc, char** argv)
+build_tree()
 {
-	if (argc < 2)
-	{
-		PCL_ERROR("Need at least two parameters! Syntax is: %s [model_directory] [options]\n", argv[0]);
-		return (-1);
-	}
-
 	std::string extension(".pcd");
 	transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int))tolower);
 
@@ -124,7 +121,7 @@ build_tree(int argc, char** argv)
 	std::vector<vfh_model> models;
 
 	// Load the model histograms
-	loadFeatureModels(argv[1], extension, models);
+	loadFeatureModels("vfh_recognition/data/", extension, models);
 	pcl::console::print_highlight("Loaded %d VFH models. Creating training data %s/%s.\n",
 		(int)models.size(), training_data_h5_file_name.c_str(), training_data_list_file_name.c_str());
 
@@ -159,7 +156,7 @@ build_tree(int argc, char** argv)
 
 
 
-typedef std::pair<std::string, std::vector<float> > vfh_model;
+// typedef std::pair<std::string, std::vector<float> > vfh_model;
 
 /** \brief Loads an n-D histogram file as a VFH signature
 * \param path the input file name
@@ -172,7 +169,7 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	// Load the file as a PCD
 	try
 	{
-		sensor_msgs::PointCloud2 cloud;
+		pcl::PCLPointCloud2 cloud;
 		int version;
 		Eigen::Vector4f origin;
 		Eigen::Quaternionf orientation;
@@ -196,7 +193,7 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	pcl::io::loadPCDFile(path.string(), point);
 	vfh.second.resize(308);
 
-	std::vector <sensor_msgs::PointField> fields;
+	std::vector <pcl::PCLPointField> fields;
 	getFieldIndex(point, "vfh", fields);
 
 	for (size_t i = 0; i < fields[vfh_idx].count; ++i)
@@ -256,38 +253,43 @@ loadFileList(std::vector<vfh_model> &models, const std::string &filename)
 }
 
 int
-main(int argc, char** argv)
+find_nearest_neighbors ()
 {
+	//number of nearest neighbors to search for in the tree
 	int k = 6;
+	//maximum distance threshold for a model to be considered VALID
+	double thresh = 50;     // No threshold, disabled by default
 
-	double thresh = DBL_MAX;     // No threshold, disabled by default
-
-	if (argc < 2)
-	{
-		pcl::console::print_error
-		("Need at least three parameters! Syntax is: %s <query_vfh_model.pcd> [options] {kdtree.idx} {training_data.h5} {training_data.list}\n", argv[0]);
-		pcl::console::print_info("    where [options] are:  -k      = number of nearest neighbors to search for in the tree (default: ");
-		pcl::console::print_value("%d", k); pcl::console::print_info(")\n");
-		pcl::console::print_info("                          -thresh = maximum distance threshold for a model to be considered VALID (default: ");
-		pcl::console::print_value("%f", thresh); pcl::console::print_info(")\n\n");
-		return (-1);
-	}
+	//if (argc < 2)
+	//{
+	//	pcl::console::print_error
+	//	("Need at least three parameters! Syntax is: %s <query_vfh_model.pcd> [options] {kdtree.idx} {training_data.h5} {training_data.list}\n", argv[0]);
+	//	pcl::console::print_info("    where [options] are:  -k      = number of nearest neighbors to search for in the tree (default: ");
+	//	pcl::console::print_value("%d", k); pcl::console::print_info(")\n");
+	//	pcl::console::print_info("                          -thresh = maximum distance threshold for a model to be considered VALID (default: ");
+	//	pcl::console::print_value("%f", thresh); pcl::console::print_info(")\n\n");
+	//	return (-1);
+	//}
 
 	std::string extension(".pcd");
 	transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int))tolower);
 
 	// Load the test histogram
-	std::vector<int> pcd_indices = pcl::console::parse_file_extension_argument(argc, argv, ".pcd");
+	// º”‘ÿvfh Ãÿ’˜
+	//std::vector<int> pcd_indices = pcl::console::parse_file_extension_argument(argc, argv, ".pcd");
+	std::string vfh_path = "vfh_recognition/data/000.580.67/1258290249333_cluster_1_nxyz_vfh.pcd";
+
 	vfh_model histogram;
-	if (!loadHist(argv[pcd_indices.at(0)], histogram))
+	//if (!loadHist(argv[pcd_indices.at(0)], histogram))
+	if (!loadHist(vfh_path, histogram))
 	{
-		pcl::console::print_error("Cannot load test file %s\n", argv[pcd_indices.at(0)]);
+		pcl::console::print_error("Cannot load test file %s\n", vfh_path);
 		return (-1);
 	}
 
-	pcl::console::parse_argument(argc, argv, "-thresh", thresh);
-	// Search for the k closest matches
-	pcl::console::parse_argument(argc, argv, "-k", k);
+	//pcl::console::parse_argument(argc, argv, "-thresh", thresh);
+	//// Search for the k closest matches
+	//pcl::console::parse_argument(argc, argv, "-k", k);
 	pcl::console::print_highlight("Using "); pcl::console::print_value("%d", k); pcl::console::print_info(" nearest neighbors.\n");
 
 	std::string kdtree_idx_file_name = "kdtree.idx";
@@ -327,13 +329,13 @@ main(int argc, char** argv)
 	}
 
 	// Output the results on screen
-	pcl::console::print_highlight("The closest %d neighbors for %s are:\n", k, argv[pcd_indices[0]]);
+	pcl::console::print_highlight("The closest %d neighbors for %s are:\n", k, vfh_path);
 	for (int i = 0; i < k; ++i)
 		pcl::console::print_info("    %d - %s (%d) with a distance of: %f\n",
 			i, models.at(k_indices[0][i]).first.c_str(), k_indices[0][i], k_distances[0][i]);
 
 	// Load the results
-	pcl::visualization::PCLVisualizer p(argc, argv, "VFH Cluster Classifier");
+	pcl::visualization::PCLVisualizer p("VFH Cluster Classifier");
 	int y_s = (int)floor(sqrt((double)k));
 	int x_s = y_s + (int)ceil((k / (double)y_s) - y_s);
 	double x_step = (double)(1 / (double)x_s);
@@ -364,14 +366,14 @@ main(int argc, char** argv)
 			m++;
 		}
 
-		sensor_msgs::PointCloud2 cloud;
+		pcl::PCLPointCloud2 cloud;
 		pcl::console::print_highlight(stderr, "Loading "); pcl::console::print_value(stderr, "%s ", cloud_name.c_str());
 		if (pcl::io::loadPCDFile(cloud_name, cloud) == -1)
 			break;
 
 		// Convert from blob to PointCloud
 		pcl::PointCloud<pcl::PointXYZ> cloud_xyz;
-		pcl::fromROSMsg(cloud, cloud_xyz);
+		pcl::fromPCLPointCloud2(cloud, cloud_xyz);
 
 		if (cloud_xyz.points.size() == 0)
 			break;
