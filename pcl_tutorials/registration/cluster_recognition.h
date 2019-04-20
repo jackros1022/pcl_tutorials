@@ -24,6 +24,10 @@
 
 using namespace std;
 
+#define buildingTree
+//#define nearestNeighbors
+
+#if buildTree
 /************************************************************************/
 /*                 build tree                                           */
 /************************************************************************/
@@ -47,7 +51,7 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 		Eigen::Quaternionf orientation;
 		pcl::PCDReader r;
 		int type; unsigned int idx;
-		r.readHeader(path.string(),cloud, origin, orientation, version, type, idx);
+		r.readHeader(path.string(), cloud, origin, orientation, version, type, idx);
 
 		vfh_idx = pcl::getFieldIndex(cloud, "vfh");
 		if (vfh_idx == -1)
@@ -64,7 +68,7 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	pcl::PointCloud <pcl::VFHSignature308> point;
 	pcl::io::loadPCDFile(path.string(), point);
 	vfh.second.resize(308);
-	
+
 	std::vector <pcl::PCLPointField> fields;
 	pcl::getFieldIndex(point, "vfh", fields);
 
@@ -83,9 +87,9 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 * \param models the resultant vector of histogram models
 */
 void
-loadFeatureModels(	const boost::filesystem::path	&base_dir, 
-								const std::string	&extension,
-							std::vector<vfh_model>	&models)
+loadFeatureModels(const boost::filesystem::path	&base_dir,
+	const std::string	&extension,
+	std::vector<vfh_model>	&models)
 {
 	if (!boost::filesystem::exists(base_dir) && !boost::filesystem::is_directory(base_dir))
 		return;
@@ -150,6 +154,12 @@ build_tree()
 
 	return (0);
 }
+
+
+#endif
+
+#if nearestNeighbors
+
 /************************************************************************/
 /*                  nearest_neighbors                                   */
 /************************************************************************/
@@ -253,23 +263,23 @@ loadFileList(std::vector<vfh_model> &models, const std::string &filename)
 }
 
 int
-find_nearest_neighbors ()
+find_nearest_neighbors()
 {
 	//number of nearest neighbors to search for in the tree
 	int k = 6;
 	//maximum distance threshold for a model to be considered VALID
 	double thresh = 50;     // No threshold, disabled by default
 
-	//if (argc < 2)
-	//{
-	//	pcl::console::print_error
-	//	("Need at least three parameters! Syntax is: %s <query_vfh_model.pcd> [options] {kdtree.idx} {training_data.h5} {training_data.list}\n", argv[0]);
-	//	pcl::console::print_info("    where [options] are:  -k      = number of nearest neighbors to search for in the tree (default: ");
-	//	pcl::console::print_value("%d", k); pcl::console::print_info(")\n");
-	//	pcl::console::print_info("                          -thresh = maximum distance threshold for a model to be considered VALID (default: ");
-	//	pcl::console::print_value("%f", thresh); pcl::console::print_info(")\n\n");
-	//	return (-1);
-	//}
+							//if (argc < 2)
+							//{
+							//	pcl::console::print_error
+							//	("Need at least three parameters! Syntax is: %s <query_vfh_model.pcd> [options] {kdtree.idx} {training_data.h5} {training_data.list}\n", argv[0]);
+							//	pcl::console::print_info("    where [options] are:  -k      = number of nearest neighbors to search for in the tree (default: ");
+							//	pcl::console::print_value("%d", k); pcl::console::print_info(")\n");
+							//	pcl::console::print_info("                          -thresh = maximum distance threshold for a model to be considered VALID (default: ");
+							//	pcl::console::print_value("%f", thresh); pcl::console::print_info(")\n\n");
+							//	return (-1);
+							//}
 
 	std::string extension(".pcd");
 	transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int))tolower);
@@ -422,3 +432,6 @@ find_nearest_neighbors ()
 	p.spin();
 	return (0);
 }
+
+#endif
+
