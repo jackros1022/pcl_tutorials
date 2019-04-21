@@ -24,13 +24,16 @@
 
 using namespace std;
 
-#define buildingTree
+#define buildTree
 //#define nearestNeighbors
 
-#if buildTree
+
+
+#ifdef  buildTree
 /************************************************************************/
 /*                 build tree                                           */
 /************************************************************************/
+
 typedef std::pair<std::string, std::vector<float> > vfh_model;
 
 /** \brief Loads an n-D histogram file as a VFH signature
@@ -45,7 +48,6 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	try
 	{
 		pcl::PCLPointCloud2 cloud;
-		//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 		int version;
 		Eigen::Vector4f origin;
 		Eigen::Quaternionf orientation;
@@ -87,9 +89,9 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 * \param models the resultant vector of histogram models
 */
 void
-loadFeatureModels(const boost::filesystem::path	&base_dir,
-	const std::string	&extension,
-	std::vector<vfh_model>	&models)
+loadFeatureModels(const boost::filesystem::path		&base_dir,
+							const std::string		&extension,
+							std::vector<vfh_model>	&models/*加载的模型*/)
 {
 	if (!boost::filesystem::exists(base_dir) && !boost::filesystem::is_directory(base_dir))
 		return;
@@ -146,8 +148,8 @@ build_tree()
 
 	// Build the tree index and save it to disk
 	pcl::console::print_error("Building the kdtree index (%s) for %d elements...\n", kdtree_idx_file_name.c_str(), (int)data.rows);
-	flann::Index<flann::ChiSquareDistance<float> > index(data, flann::LinearIndexParams());
-	//flann::Index<flann::ChiSquareDistance<float> > index (data, flann::KDTreeIndexParams (4));
+	//flann::Index<flann::ChiSquareDistance<float> > index(data, flann::LinearIndexParams());
+	flann::Index<flann::ChiSquareDistance<float> > index (data, flann::KDTreeIndexParams (4));
 	index.buildIndex();
 	index.save(kdtree_idx_file_name);
 	delete[] data.ptr();
@@ -157,8 +159,8 @@ build_tree()
 
 
 #endif
-
-#if nearestNeighbors
+ 
+#ifdef nearestNeighbors
 
 /************************************************************************/
 /*                  nearest_neighbors                                   */
@@ -166,7 +168,7 @@ build_tree()
 
 
 
-// typedef std::pair<std::string, std::vector<float> > vfh_model;
+typedef std::pair<std::string, std::vector<float> > vfh_model;
 
 /** \brief Loads an n-D histogram file as a VFH signature
 * \param path the input file name
@@ -270,16 +272,16 @@ find_nearest_neighbors()
 	//maximum distance threshold for a model to be considered VALID
 	double thresh = 50;     // No threshold, disabled by default
 
-							//if (argc < 2)
-							//{
-							//	pcl::console::print_error
-							//	("Need at least three parameters! Syntax is: %s <query_vfh_model.pcd> [options] {kdtree.idx} {training_data.h5} {training_data.list}\n", argv[0]);
-							//	pcl::console::print_info("    where [options] are:  -k      = number of nearest neighbors to search for in the tree (default: ");
-							//	pcl::console::print_value("%d", k); pcl::console::print_info(")\n");
-							//	pcl::console::print_info("                          -thresh = maximum distance threshold for a model to be considered VALID (default: ");
-							//	pcl::console::print_value("%f", thresh); pcl::console::print_info(")\n\n");
-							//	return (-1);
-							//}
+	//if (argc < 2)
+	//{
+	//	pcl::console::print_error
+	//	("Need at least three parameters! Syntax is: %s <query_vfh_model.pcd> [options] {kdtree.idx} {training_data.h5} {training_data.list}\n", argv[0]);
+	//	pcl::console::print_info("    where [options] are:  -k      = number of nearest neighbors to search for in the tree (default: ");
+	//	pcl::console::print_value("%d", k); pcl::console::print_info(")\n");
+	//	pcl::console::print_info("                          -thresh = maximum distance threshold for a model to be considered VALID (default: ");
+	//	pcl::console::print_value("%f", thresh); pcl::console::print_info(")\n\n");
+	//	return (-1);
+	//}
 
 	std::string extension(".pcd");
 	transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int))tolower);

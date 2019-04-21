@@ -10,8 +10,13 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/features/normal_3d.h>
+#include "pcl/features/normal_3d_omp.h"
 #include <pcl/features/fpfh.h>
+#include "pcl/features/fpfh_omp.h"
 #include <pcl/registration/ia_ransac.h>
+#include "pcl/console/time.h"
+
+
 
 class FeatureCloud
 {
@@ -19,7 +24,7 @@ public:
 	// A bit of shorthand
 	typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 	typedef pcl::PointCloud<pcl::Normal> SurfaceNormals;
-	typedef pcl::PointCloud<pcl::FPFHSignature33> LocalFeatures;
+	typedef pcl::PointCloud<pcl::FPFHSignature33> LocalFeatures;	//FPFH
 	typedef pcl::search::KdTree<pcl::PointXYZ> SearchMethod;
 
 	FeatureCloud() :
@@ -34,7 +39,7 @@ public:
 	void
 		setInputCloud(PointCloud::Ptr xyz)
 	{
-		xyz_ = xyz;
+		xyz_ = xyz;		
 		processInput();
 	}
 
@@ -83,7 +88,8 @@ protected:
 	{
 		normals_ = SurfaceNormals::Ptr(new SurfaceNormals);
 
-		pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> norm_est;
+		pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> norm_est;
+		norm_est.setNumberOfThreads(10);
 		norm_est.setInputCloud(xyz_);
 		norm_est.setSearchMethod(search_method_xyz_);
 		norm_est.setRadiusSearch(normal_radius_);
@@ -96,7 +102,8 @@ protected:
 	{
 		features_ = LocalFeatures::Ptr(new LocalFeatures);
 
-		pcl::FPFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfh_est;
+		pcl::FPFHEstimationOMP<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfh_est;
+		fpfh_est.setNumberOfThreads(10);
 		fpfh_est.setInputCloud(xyz_);
 		fpfh_est.setInputNormals(normals_);
 		fpfh_est.setSearchMethod(search_method_xyz_);
@@ -164,10 +171,10 @@ public:
 		sac_ia_.setInputCloud(template_cloud.getPointCloud());
 		sac_ia_.setSourceFeatures(template_cloud.getLocalFeatures());
 
-		pcl::PointCloud<pcl::PointXYZ> registration_output;
+		pcl::PointCloud<pcl::PointXYZ> registration_output;	//配准后的点云
 		sac_ia_.align(registration_output);
 
-		result.fitness_score = (float)sac_ia_.getFitnessScore(max_correspondence_distance_);
+		result.fitness_score = (float)sac_ia_.getFitnessScore(max_correspondence_distance_);	//配准分数
 		result.final_transformation = sac_ia_.getFinalTransformation();
 	}
 
@@ -229,16 +236,24 @@ template_alignment()
 	std::ifstream input_stream("data/object_templates.txt");
 	object_templates.resize(0);
 	std::string pcd_filename;
+	pcl::console::TicToc time;
+
+	time.tic();
 	while (input_stream.good())
 	{
-		std::getline(input_stream, pcd_filename);
+		/*
+			输入进去后，分别计算normal、feature
+			实际上，这一部分可以离线计算好，存储为hdf5文件
+		 */
+		std::getline(input_stream, pcd_filename);	// 按行读取pcd文件
 		if (pcd_filename.empty() || pcd_filename.at(0) == '#') // Skip blank lines or comments
 			continue;
 
 		FeatureCloud template_cloud;
-		template_cloud.loadInputCloud(pcd_filename);
-		object_templates.push_back(template_cloud);
+		template_cloud.loadInputCloud(pcd_filename);	
+		object_templates.push_back(template_cloud);	
 	}
+	std::cout << "加载模板  Time: " << time.toc() / 1000 << "s" << std::endl;
 	input_stream.close();
 
 	// Load the target cloud PCD file
@@ -255,7 +270,7 @@ template_alignment()
 	pass.filter(*cloud);
 
 	// ... and downsampling the point cloud
-	const float voxel_grid_size = 0.005f;
+	const float voxel_grid_size = 0.05f;
 	pcl::VoxelGrid<pcl::PointXYZ> vox_grid;
 	vox_grid.setInputCloud(cloud);
 	vox_grid.setLeafSize(voxel_grid_size, voxel_grid_size, voxel_grid_size);
@@ -269,14 +284,14 @@ template_alignment()
 	TemplateAlignment template_align;
 	for (size_t i = 0; i < object_templates.size(); ++i)
 	{
-		template_align.addTemplateCloud(object_templates[i]);
+		template_align.addTemplateCloud(object_templates[i]);		//遍历填入模板
 	}
 	template_align.setTargetCloud(target_cloud);
 
 	// Find the best template alignment
 	TemplateAlignment::Result best_alignment;
 	int best_index = template_align.findBestAlignment(best_alignment);
-	const FeatureCloud &best_template = object_templates[best_index];
+	const FeatureCloud &best_template = object_templates[best_index];	//引用
 
 	// Print the alignment fitness score (values less than 0.00002 are good)
 	printf("Best fitness score: %f\n", best_alignment.fitness_score);

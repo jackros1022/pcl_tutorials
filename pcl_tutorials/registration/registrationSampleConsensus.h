@@ -28,6 +28,7 @@
 
 
 // Align a rigid object to a scene with clutter and occlusions
+// 遮挡杂乱的配准
 int computeSampleConsensusPrerejective()
 {
 	// Types
@@ -76,12 +77,13 @@ int computeSampleConsensusPrerejective()
 	pcl::console::print_highlight("Estimating features...\n");
 	FeatureEstimationT fest;
 	fest.setRadiusSearch(0.025);
+
 	fest.setInputCloud(object);
 	fest.setInputNormals(object);
-	fest.compute(*object_features);
+	fest.compute(*object_features);	//model
 	fest.setInputCloud(scene);
 	fest.setInputNormals(scene);
-	fest.compute(*scene_features);
+	fest.compute(*scene_features);	//scene
 
 	// 实施配准
 	pcl::console::print_highlight("Starting alignment...\n");
@@ -120,7 +122,7 @@ int computeSampleConsensusPrerejective()
 		pcl::console::print_info("Inliers: %i/%i\n", align.getInliers().size(), object->size());
 
 		// Show alignment
-		pcl::visualization::PCLVisualizer visu("点云库PCL学习教程第二版-鲁棒位姿估计");
+		pcl::visualization::PCLVisualizer visu("鲁棒位姿估计");
 		int v1(0), v2(0);
 		visu.createViewPort(0, 0, 0.5, 1, v1);
 		visu.createViewPort(0.5, 0, 1, 1, v2);

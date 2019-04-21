@@ -3,8 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-vfh_recognition_tutorial_data/
 vfh_recognition/
+kdtree.idx
+training_data.h5
+training_data.list
+
 
 # User-specific files
 *.suo
