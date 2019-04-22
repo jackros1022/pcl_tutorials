@@ -2,6 +2,7 @@
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 #include "pcl/segmentation/sac_segmentation.h"
+#include "pcl/segmentation/euclidean_cluster_comparator.h"
 
 void getSAC_Segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, pcl::PointIndices::Ptr &inliers)
 {
@@ -13,6 +14,9 @@ void getSAC_Segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, pcl::PointI
 	seg.setMethodType(pcl::SAC_RANSAC);
 	seg.setDistanceThreshold(0.01);
 	seg.setInputCloud(cloud);
+	pcl::console::TicToc time;
+	time.tic();
 	seg.segment(*inliers, *coefficients);
 
+	cout << "SACSegmentation[MethodType:SAC_RANSAC] time: " << time.toc() / 1000 << "s" << endl;
 }

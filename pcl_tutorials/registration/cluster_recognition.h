@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/console/parse.h>
@@ -25,7 +26,7 @@
 using namespace std;
 
 #define buildTree
-//#define nearestNeighbors
+#define nearestNeighbors
 
 
 
@@ -148,10 +149,14 @@ build_tree()
 
 	// Build the tree index and save it to disk
 	pcl::console::print_error("Building the kdtree index (%s) for %d elements...\n", kdtree_idx_file_name.c_str(), (int)data.rows);
-	//flann::Index<flann::ChiSquareDistance<float> > index(data, flann::LinearIndexParams());
-	flann::Index<flann::ChiSquareDistance<float> > index (data, flann::KDTreeIndexParams (4));
+	// 卡方距离， 多用于直方图比较
+	flann::Index<flann::ChiSquareDistance<float> > index(data, flann::LinearIndexParams());
+	//flann::Index<flann::ChiSquareDistance<float> > index (data, flann::KDTreeIndexParams (4));
+	//flann::Index<flann::
 	index.buildIndex();
 	index.save(kdtree_idx_file_name);
+
+	std::cout << "保存完毕" << std::endl;
 	delete[] data.ptr();
 
 	return (0);
@@ -167,13 +172,15 @@ build_tree()
 /************************************************************************/
 
 
-
+/*
 typedef std::pair<std::string, std::vector<float> > vfh_model;
+*/
 
 /** \brief Loads an n-D histogram file as a VFH signature
 * \param path the input file name
 * \param vfh the resultant VFH model
 */
+/*
 bool
 loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 {
@@ -215,7 +222,7 @@ loadHist(const boost::filesystem::path &path, vfh_model &vfh)
 	vfh.first = path.string();
 	return (true);
 }
-
+*/
 
 /** \brief Search for the closest k neighbors
 * \param index the tree
@@ -286,8 +293,7 @@ find_nearest_neighbors()
 	std::string extension(".pcd");
 	transform(extension.begin(), extension.end(), extension.begin(), (int(*)(int))tolower);
 
-	// Load the test histogram
-	// 加载vfh 特征
+	// 随机测试加载vfh 特征 Load the test histogram
 	//std::vector<int> pcd_indices = pcl::console::parse_file_extension_argument(argc, argv, ".pcd");
 	std::string vfh_path = "vfh_recognition/data/000.580.67/1258290249333_cluster_1_nxyz_vfh.pcd";
 
@@ -304,6 +310,7 @@ find_nearest_neighbors()
 	//pcl::console::parse_argument(argc, argv, "-k", k);
 	pcl::console::print_highlight("Using "); pcl::console::print_value("%d", k); pcl::console::print_info(" nearest neighbors.\n");
 
+	// 预先训练好的数据库
 	std::string kdtree_idx_file_name = "kdtree.idx";
 	std::string training_data_h5_file_name = "training_data.h5";
 	std::string training_data_list_file_name = "training_data.list";
@@ -337,12 +344,12 @@ find_nearest_neighbors()
 	{
 		flann::Index<flann::ChiSquareDistance<float> > index(data, flann::SavedIndexParams("kdtree.idx"));
 		index.buildIndex();
-		nearestKSearch(index, histogram, k, k_indices, k_distances);
+		nearestKSearch(index, histogram, k, k_indices, k_distances);	//从训练数据库查找
 	}
 
 	// Output the results on screen
 	pcl::console::print_highlight("The closest %d neighbors for %s are:\n", k, vfh_path);
-	for (int i = 0; i < k; ++i)
+	for (int i = 0; i < k; ++i) //查找6个
 		pcl::console::print_info("    %d - %s (%d) with a distance of: %f\n",
 			i, models.at(k_indices[0][i]).first.c_str(), k_indices[0][i], k_distances[0][i]);
 

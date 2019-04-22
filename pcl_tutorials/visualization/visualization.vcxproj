@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A2189A70-09E1-45A4-A60A-56499F21914F}</ProjectGuid>
+    <ProjectGuid>{295F7ADC-0DA7-4EFF-82EC-653DFE6FF03E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>segment</RootNamespace>
+    <RootNamespace>visualization</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -146,11 +146,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="segmentEuclidean.h" />
-    <ClInclude Include="segmentSAC.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.md" />
+    <ClInclude Include="pclvisualizer.h" />
+    <ClInclude Include="ViewCloud.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

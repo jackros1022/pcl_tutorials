@@ -20,8 +20,8 @@ int main()
 	/************************************************************************/
 	/*                     vfh_recognition                                  */
 	/*先运行build_tree，再运行find_nearest_neighbors							*/
-	build_tree();
-	//find_nearest_neighbors();
+	//build_tree();
+	find_nearest_neighbors();
 	/************************************************************************/
 
 

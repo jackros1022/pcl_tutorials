@@ -59,7 +59,7 @@ void getBilateralFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, pcl::PointCl
 		Provide a pointer to the search object. More...
 	
 	*/
-	pcl::BilateralFilter<pcl::PointXYZ>::Ptr bf(new pcl::BilateralFilter<pcl::PointXYZ>);
+//	pcl::BilateralFilter<pcl::PointXYZ>::Ptr bf(new pcl::BilateralFilter<pcl::PointXYZ>);
 
 	/*
 	void 	setSigmaS (float sigma_s)

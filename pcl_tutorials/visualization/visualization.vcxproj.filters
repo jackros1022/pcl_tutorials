@@ -20,14 +20,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="segmentSAC.h">
+    <ClInclude Include="pclvisualizer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="segmentEuclidean.h">
+    <ClInclude Include="ViewCloud.h">
       <Filter>头文件</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.md" />
   </ItemGroup>
 </Project>
