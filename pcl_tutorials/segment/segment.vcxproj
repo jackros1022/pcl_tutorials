@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="segmentEuclidean.h" />
+    <ClInclude Include="segmentRegionGrowing.h" />
     <ClInclude Include="segmentSAC.h" />
   </ItemGroup>
   <ItemGroup>

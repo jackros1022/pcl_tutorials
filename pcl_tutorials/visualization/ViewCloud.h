@@ -73,9 +73,9 @@ void ViewCloud::showPointCloud()
 		++number;
 	}
 
-	if (!viewer->wasStopped())
+	while (!viewer->wasStopped())
 	{
-		viewer->spin();
-	}
+		viewer->spinOnce(40);
+	} 
 }
 

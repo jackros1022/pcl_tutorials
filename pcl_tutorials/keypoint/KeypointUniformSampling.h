@@ -3,7 +3,7 @@
 #include "pcl/point_types.h"
 #include "pcl/keypoints/uniform_sampling.h"
 
-void getUniformSampling(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint, double radius=0.05)
+void getUniformSampling(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint, double radius=0.01)
 {
 	
 	/*

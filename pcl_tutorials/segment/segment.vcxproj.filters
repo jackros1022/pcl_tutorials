@@ -26,6 +26,9 @@
     <ClInclude Include="segmentEuclidean.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="segmentRegionGrowing.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
