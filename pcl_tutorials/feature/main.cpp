@@ -39,11 +39,14 @@ int main()
 		std::cout << "load pcd file failed!\n";getchar();return -1;}
 	std::cout << "loadPCDFile Function Time: " << time.toc() / 1000 << "s" << std::endl;
 
-	getUniformSampling(in_cloud, keypoint, 0.005);
-	getNormalEstimation(keypoint, normal);
+	//getUniformSampling(in_cloud, keypoint, 0.005);
+	//getNormalEstimation(keypoint, normal);
 
 	//getNormal(in_cloud, normal);
 	//getNormalEstimation(in_cloud, normal);
+
+	getGP3(in_cloud);
+
 #if MomentInvariantsSignature
 	getMomentInvariants(keypoint);
 

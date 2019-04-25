@@ -102,8 +102,12 @@ void getTriangulation(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud,
 	std::cout << "triangles.size: " << triangles.size() << std::endl;
 }
 
+/*
+	完整显示三角化结果
+*/
 void getGP3(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud)
 {
+	
 
 	// Normal estimation*
 	pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> n;
