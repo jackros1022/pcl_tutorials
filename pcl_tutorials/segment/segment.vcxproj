@@ -146,6 +146,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="segmentdifferences.h" />
     <ClInclude Include="segmentEuclidean.h" />
     <ClInclude Include="segmentRegionGrowing.h" />
     <ClInclude Include="segmentSAC.h" />

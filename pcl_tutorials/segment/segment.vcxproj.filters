@@ -29,6 +29,9 @@
     <ClInclude Include="segmentRegionGrowing.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="segmentdifferences.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />

@@ -26,5 +26,8 @@
     <ClInclude Include="ViewCloud.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="transformed_cloud.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -5,7 +5,9 @@
 #include <pcl/common/time.h>
 #include <pcl/console/print.h>
 #include <pcl/features/normal_3d.h>
+#include <pcl/features/normal_3d_omp.h>
 #include <pcl/features/fpfh.h>
+#include "pcl/features/fpfh_omp.h"
 #include <pcl/filters/filter.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/io/pcd_io.h>
@@ -23,7 +25,7 @@
 #include "pcl/registration/correspondence_rejection_sample_consensus_2d.h"
 /************************************************************************/
 
-
+#include "pcl/filters/extract_indices.h"
 
 
 
@@ -39,13 +41,13 @@ int computeSampleConsensusPrerejective()
 	typedef pcl::PointCloud<FeatureT> FeatureCloudT;
 	typedef pcl::visualization::PointCloudColorHandlerCustom<PointNT> ColorHandlerT;
 
+
 	// Point clouds
 	PointCloudT::Ptr object(new PointCloudT);
 	PointCloudT::Ptr object_aligned(new PointCloudT);
 	PointCloudT::Ptr scene(new PointCloudT);
 	FeatureCloudT::Ptr object_features(new FeatureCloudT);
 	FeatureCloudT::Ptr scene_features(new FeatureCloudT);
-
 
 	//  加载目标物体和场景点云
 	pcl::console::print_highlight("Loading point clouds...\n");
@@ -77,26 +79,20 @@ int computeSampleConsensusPrerejective()
 	pcl::console::print_highlight("Estimating features...\n");
 	FeatureEstimationT fest;
 	fest.setRadiusSearch(0.025);
-
 	fest.setInputCloud(object);
 	fest.setInputNormals(object);
-	fest.compute(*object_features);	//model
+	fest.compute(*object_features);
 	fest.setInputCloud(scene);
 	fest.setInputNormals(scene);
-	fest.compute(*scene_features);	//scene
+	fest.compute(*scene_features);
 
 	// 实施配准
 	pcl::console::print_highlight("Starting alignment...\n");
-	/*
-	template <typename PointSource, typename PointTarget, typename FeatureT>
-	class SampleConsensusPrerejective : public Registration<PointSource, PointTarget>
-	*/
 	pcl::SampleConsensusPrerejective<PointNT, PointNT, FeatureT> align;
 	align.setInputSource(object);
 	align.setSourceFeatures(object_features);
 	align.setInputTarget(scene);
 	align.setTargetFeatures(scene_features);
-
 	align.setMaximumIterations(50000); //  采样一致性迭代次数
 	align.setNumberOfSamples(3); //  创建假设所需的样本数
 	align.setCorrespondenceRandomness(5); //  使用的临近特征点的数目
@@ -122,7 +118,7 @@ int computeSampleConsensusPrerejective()
 		pcl::console::print_info("Inliers: %i/%i\n", align.getInliers().size(), object->size());
 
 		// Show alignment
-		pcl::visualization::PCLVisualizer visu("鲁棒位姿估计");
+		pcl::visualization::PCLVisualizer visu("点云库PCL学习教程第二版-鲁棒位姿估计");
 		int v1(0), v2(0);
 		visu.createViewPort(0, 0, 0.5, 1, v1);
 		visu.createViewPort(0.5, 0, 1, 1, v2);

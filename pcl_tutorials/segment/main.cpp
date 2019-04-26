@@ -15,6 +15,8 @@
 #include "segmentEuclidean.h"
 
 #include "segmentSAC.h"
+
+#include "segmentdifferences.h"
 using namespace std;
 
 
@@ -22,6 +24,8 @@ using namespace std;
 int main()
 {
 
+	segment_differences();
+/*
 	pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr scene_pt(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -59,4 +63,6 @@ int main()
 	view->showPointCloud(); //×èÈûº¯Êý
 
 	return 0;
+
+*/
 }

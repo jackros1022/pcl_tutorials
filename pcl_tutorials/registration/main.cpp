@@ -4,6 +4,8 @@
 #include "registrationSampleConsensus.h"
 #include "template_alignment.h"
 #include "cluster_recognition.h"
+#include "registration_binlang.h"
+//#include "segmentdifferences.h"
 
 int main()
 {
@@ -21,9 +23,10 @@ int main()
 	/*                     vfh_recognition                                  */
 	/*先运行build_tree，再运行find_nearest_neighbors							*/
 	//build_tree();
-	find_nearest_neighbors();
+	//find_nearest_neighbors();
 	/************************************************************************/
 
+	registration_binlang();
 
 	getchar();
 	return 0;

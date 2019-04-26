@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pclvisualizer.h" />
+    <ClInclude Include="transformed_cloud.h" />
     <ClInclude Include="ViewCloud.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

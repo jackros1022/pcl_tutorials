@@ -37,8 +37,7 @@ void getMomentInvariants(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud)
 	feature_extractor.getEigenVectors(major_vector, middle_vector, minor_vector);	//特征向量（分解，求出坐标）
 	feature_extractor.getMassCenter(mass_center);	//点云中心坐标
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new 
-		pcl::visualization::PCLVisualizer("基于惯性矩与偏心率的描述子"));
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("基于惯性矩与偏心率的描述子"));
 	viewer->setBackgroundColor(1, 1, 1);
 	viewer->addCoordinateSystem(1.0);
 	viewer->initCameraParameters();

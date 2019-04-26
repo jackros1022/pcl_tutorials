@@ -35,5 +35,8 @@
     <ClInclude Include="cluster_recognition.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="registration_binlang.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
