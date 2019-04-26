@@ -31,6 +31,7 @@ int segment_differences()
 	//Segment differences 
 
 	pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+	// 获得两个空间对齐点云之间的差值，并在给定的最大距离阈值下返回它们之间的差值。
 	pcl::SegmentDifferences<pcl::PointXYZRGB> sdiff;
 	sdiff.setInputCloud(src);
 	sdiff.setTargetCloud(tgt);

@@ -29,6 +29,7 @@
 #include "pcl/filters/extract_indices.h"
 #include "../feature/featureMomentInvariants.h"
 #include "pcl/segmentation/segment_differences.h"
+#include <pcl/common/transforms.h>
 
 using namespace std;
 
@@ -50,6 +51,8 @@ int registration_binlang()
 	FeatureCloudT::Ptr object_features(new FeatureCloudT);
 	FeatureCloudT::Ptr scene_features(new FeatureCloudT);
 
+	Eigen::Matrix4f guess;
+
 	//  加载目标物体和场景点云
 	pcl::console::print_highlight("Loading point clouds...\n");
 	if (pcl::io::loadPCDFile<PointNT>("chef.pcd", *object) < 0 ||
@@ -58,6 +61,13 @@ int registration_binlang()
 		pcl::console::print_error("Error loading object/scene file!\n");
 		return (1);
 	}
+
+	Eigen::Affine3f transform_2 = Eigen::Affine3f::Identity();
+	transform_2.translation() << 3, 0.0, 0.0;		//平移参数
+	transform_2.rotate(Eigen::AngleAxisf(M_PI_2, Eigen::Vector3f::UnitZ()));	//旋转参数
+	pcl::PointCloud<PointNT>::Ptr transformed_object(new pcl::PointCloud<PointNT>());
+	pcl::transformPointCloud(*object, *object, transform_2);
+
 
 	// 下采样
 	pcl::console::print_highlight("Downsampling...\n");
@@ -102,14 +112,13 @@ int registration_binlang()
 	align.setInlierFraction(0.25f); //接受位姿假设所需的内点比例
 	{
 		pcl::ScopeTime t("Alignment");
-		align.align(*object_aligned);
-
-		std::cout << "object_aligned->size " << object_aligned->size() << std::endl;
-		std::cout << "scene->size " << scene->size() << std::endl;
+		align.align(*object_aligned, guess);
 	}
 
+
+
 	/****************************** show box **************************************/
-	bool showbox = true;
+	bool showbox = false;
 	if (showbox)
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr object_aligned_xyz(new pcl::PointCloud<pcl::PointXYZ>);
@@ -126,17 +135,16 @@ int registration_binlang()
 
 		getMomentInvariants(object_aligned_xyz);
 	}
-
 	/************************************************************************/
 
-	pcl::search::KdTree<PointNT>::Ptr tree(new pcl::search::KdTree<PointNT>);
-	tree->setInputCloud(scene);
+	//pcl::search::KdTree<PointNT>::Ptr tree(new pcl::search::KdTree<PointNT>);
+	//tree->setInputCloud(scene);
 
-	pcl::getPointCloudDifference<PointNT>(*scene, *object_aligned, 0.01, tree, *object_aligned_re);
+	//pcl::getPointCloudDifference<PointNT>(*scene, *object_aligned, 0.01, tree, *object_aligned_re);
 
-	cout <<"object_aligned_re->size: "<< object_aligned_re->size() << endl;
+	//cout <<"object_aligned_re->size: "<< object_aligned_re->size() << endl;
 
-	if (false/*align.hasConverged()*/)	//
+	if (align.hasConverged())	//
 	{
 		// Print results
 		printf("\n");
@@ -156,16 +164,16 @@ int registration_binlang()
 		visu.createViewPort(0, 0, 0.5, 1, v1);
 		visu.createViewPort(0.5, 0, 1, 1, v2);
 		visu.setBackgroundColor(255, 255, 255, v1);
-		//visu.addCoordinateSystem(1, v1);
-		//visu.addPointCloud(scene, ColorHandlerT(scene, 0.0, 255.0, 0.0), "scene", v1);
-		//visu.addPointCloud(object_aligned, ColorHandlerT(object_aligned, 0.0, 0.0, 255.0), "object_aligned", v1);
-		visu.addPointCloud(object_aligned_re, ColorHandlerT(object_aligned_re, 0.0, 0.0, 255.0), "object_aligned_re", v1);
+		visu.addCoordinateSystem(1, v2);
+		visu.addPointCloud(scene, ColorHandlerT(scene, 0.0, 255.0, 0.0), "scene", v1);
+		visu.addPointCloud(object_aligned, ColorHandlerT(object_aligned, 0.0, 0.0, 255.0), "object_aligned", v1);
+		//visu.addPointCloud(object_aligned_re, ColorHandlerT(object_aligned_re, 0.0, 0.0, 255.0), "object_aligned_re", v1);
 
 
 		visu.addPointCloud(object, ColorHandlerT(object, 0.0, 255.0, 0.0), "object_before_aligned", v2);
 		visu.addPointCloud(scene, ColorHandlerT(scene, 0.0, 0.0, 255.0), "scene_v2", v2);
-		//visu.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "scene");
-		//visu.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "object_aligned");
+		visu.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "scene");
+		visu.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "object_aligned");
 		visu.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "object_before_aligned");
 		visu.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3, "scene_v2");
 		visu.spin();
